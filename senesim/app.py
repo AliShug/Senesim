@@ -91,6 +91,17 @@ class Window(QWidget):
             body = Body(self.world, self.scene)
             body.initBox((-2, i + 1), 0.4, 0.4)
 
+        leftPole = Body(self.world, self.scene)
+        leftPole.initBox((-3, 7), 0.2, 0.2, static=True)
+        rightPole = Body(self.world, self.scene)
+        rightPole.initBox((1, 5), 0.2, 0.2, static=True)
+        ball = Body(self.world, self.scene)
+        ball.initCircle((0, 4.85), 0.2)
+        rope = Elastic(self.world, self.scene)
+        rope.initElastic(leftPole.body, rightPole.body, (-3,7), (1,5), 1)
+        rope.addContact(ball.body, (0,5))
+        self.addConstraint(rope)
+
         # mouse logic
         self.mouseDrag = MouseDrag(self)
 

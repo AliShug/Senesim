@@ -64,22 +64,22 @@ class Window(QWidget):
         # Body A tendons
         k = 400
         a1 = Elastic(self.world, self.scene)
-        a1.initElastic(self.groundBody.body, A.body, (0, -1), (-0.5, 0), k)
+        a1.initElastic(self.groundBody.body, A.body, (0, -1), (-1.0, 0), k)
         a1.addContact(self.groundBody.body, (-0.6,-0.7))
         self.addConstraint(a1)
         a2 = Elastic(self.world, self.scene)
-        a2.initElastic(self.groundBody.body, A.body, (0, -1), (0.5, 0), k)
+        a2.initElastic(self.groundBody.body, A.body, (0, -1), (1.0, 0), k)
         a2.addContact(self.groundBody.body, (0.6,-0.7))
         self.addConstraint(a2)
 
         # Body B tendons
         b1 = Elastic(self.world, self.scene)
-        b1.initElastic(self.groundBody.body, B.body, (-1, -1), (-1, 3), k)
-        b1.addContact(A.body, (-0.6, 0))
+        b1.initElastic(self.groundBody.body, B.body, (-1, -1), (-0.6, 3), k)
+        b1.addContact(A.body, (-0.6, 0.5))
         self.addConstraint(b1)
         b2 = Elastic(self.world, self.scene)
-        b2.initElastic(self.groundBody.body, B.body, (1, -1), (1, 3), k)
-        b2.addContact(A.body, (0.6, 0))
+        b2.initElastic(self.groundBody.body, B.body, (1, -1), (0.6, 3), k)
+        b2.addContact(A.body, (0.6, 0.5))
         self.addConstraint(b2)
 
         # Arm load
@@ -96,9 +96,13 @@ class Window(QWidget):
 
     def __init__(self):
         QWidget.__init__(self)
-        layout = QVBoxLayout(self)
+        root_layout = QHBoxLayout(self)
+        self.controlPane = ControlPane()
+        root_layout.addWidget(self.controlPane)
+        layout = QVBoxLayout()
+        root_layout.addLayout(layout)
         # Reset button - resets the scene
-        buttonsLayout = QHBoxLayout(self)
+        buttonsLayout = QHBoxLayout()
         self.pauseButton = QPushButton('Toggle Pause', self)
         self.pauseButton.clicked.connect(self.togglePause)
         buttonsLayout.addWidget(self.pauseButton)
@@ -192,7 +196,6 @@ class Window(QWidget):
 
     def runLoop(self):
         from time import sleep
-
         self.frame_n = 0
         while True:
             sleep(0.01)
@@ -229,4 +232,4 @@ class Window(QWidget):
         return self.view.mapToScene(p)
 
     def sizeHint(self):
-        return QSize(800, 600)
+        return QSize(1024, 800)

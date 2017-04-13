@@ -24,6 +24,7 @@ class Elastic(object):
         self.graphics = [self.scene.addLine(0,0,0,0)]
         self.forceLineA = self.scene.addLine(0,0,0,0, QPen(Qt.red, 3))
         self.forceLineB = self.scene.addLine(0,0,0,0, QPen(Qt.blue, 3))
+        self.contactForceLines = []
         if restLength:
             self.restLength = restLength
             self.calculatedRestLength = False
@@ -44,6 +45,7 @@ class Elastic(object):
             'point': pointLocal
         })
         self.graphics.append(self.scene.addLine(0,0,0,0))
+        self.contactForceLines.append(self.scene.addLine(0,0,0,0, QPen(Qt.green, 3)))
         if self.calculatedRestLength:
             self.restLength = self.getLength()
 
@@ -54,7 +56,7 @@ class Elastic(object):
         extension = self.getLength() - self.restLength
         extension_rate = (extension - self.last_extension) / delta_t
         if extension > 0:
-            resistance = self.k * extension_rate * 0.02
+            resistance = self.k * extension_rate * 0.01
             elastic_force = self.k * extension
         else:
             resistance = 0
@@ -78,7 +80,35 @@ class Elastic(object):
         # Apply Forces
         self.bodyA.ApplyForce(force=force_a, point=a, wake=True)
         self.bodyB.ApplyForce(force=force_b, point=b, wake=True)
-        # TODO: Contact forces
+        # Contact forces
+        last_p = a
+        cl_itr = iter(self.contactForceLines)
+        for i, contact in enumerate(self.contacts):
+            c_p = contact['body'].GetWorldPoint(contact['point'])
+            if i == len(self.contacts) - 1:
+                next_p = b
+            else:
+                contact_next = self.contacts[i+1]
+                next_p = contact_next['body'].GetWorldPoint(contact_next['point'])
+            # Decompose directions between contact point, and the previous and
+            # next points in the chain.
+            dir_ca = last_p - c_p
+            dir_ca.Normalize()
+            dir_cb = next_p - c_p
+            dir_cb.Normalize()
+            dir_c = (dir_ca + dir_cb) / 2
+            dir_c.Normalize()
+            force_ca = f*dir_ca
+            force_c = dir_c * b2Dot(dir_c, force_ca)
+            contact['body'].ApplyForce(force=force_c, point = c_p, wake=True)
+            # Display
+            force_line = next(cl_itr)
+            force_line.setLine(
+                c_p.x * world_scale, c_p.y * world_scale,
+                c_p.x * world_scale + force_c.x/10,
+                c_p.y * world_scale + force_c.y/10)
+            last_p = c_p
+
         # Display
         self.forceLineA.setLine(
             a.x * world_scale, a.y * world_scale,

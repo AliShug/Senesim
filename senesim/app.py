@@ -36,7 +36,6 @@ class Window(QWidget):
         # Label(self.scene, QPoint(10, 30), 'Arm')
 
         # elastic-supported arm
-        k = 12
         arm_color = QColor.fromRgbF(0.8, 0.8, 1)
         A = Body(self.world, self.scene)
         A.initBox(
@@ -50,7 +49,7 @@ class Window(QWidget):
             anchor=(0, 0),
             enableLimit=True,
             lowerAngle=-0.3 * b2_pi,
-            upperAngle=0.1 * b2_pi)
+            upperAngle=0.2 * b2_pi)
 
         B = Body(self.world, self.scene)
         B.initBox((1, 3), 2, 0.1, label='B', color=arm_color)
@@ -63,19 +62,24 @@ class Window(QWidget):
             upperAngle=0.1 * b2_pi)
 
         # Body A tendons
+        k = 400
         a1 = Elastic(self.world, self.scene)
-        a1.initElastic(self.groundBody.body, A.body, (-1, -1), (-1, 0), k)
+        a1.initElastic(self.groundBody.body, A.body, (0, -1), (-0.5, 0), k)
+        a1.addContact(self.groundBody.body, (-0.6,-0.7))
         self.addConstraint(a1)
         a2 = Elastic(self.world, self.scene)
-        a2.initElastic(self.groundBody.body, A.body, (1, -1), (1, 0), k)
+        a2.initElastic(self.groundBody.body, A.body, (0, -1), (0.5, 0), k)
+        a2.addContact(self.groundBody.body, (0.6,-0.7))
         self.addConstraint(a2)
 
         # Body B tendons
         b1 = Elastic(self.world, self.scene)
-        b1.initElastic(self.groundBody.body, B.body, (-1, 0), (-1, 3), k)
+        b1.initElastic(self.groundBody.body, B.body, (-1, -1), (-1, 3), k)
+        b1.addContact(A.body, (-0.6, 0))
         self.addConstraint(b1)
         b2 = Elastic(self.world, self.scene)
-        b2.initElastic(self.groundBody.body, B.body, (1, 0), (1, 3), k)
+        b2.initElastic(self.groundBody.body, B.body, (1, -1), (1, 3), k)
+        b2.addContact(A.body, (0.6, 0))
         self.addConstraint(b2)
 
         # Arm load

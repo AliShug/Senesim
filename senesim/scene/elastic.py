@@ -110,19 +110,19 @@ class Elastic(object):
             force_line = next(cl_itr)
             force_line.setLine(
                 c_p.x * world_scale, c_p.y * world_scale,
-                c_p.x * world_scale + force_c.x/10,
-                c_p.y * world_scale + force_c.y/10)
+                c_p.x * world_scale + force_c.x/self.k,
+                c_p.y * world_scale + force_c.y/self.k)
             last_p = c_p
 
         # Display
         self.forceLineA.setLine(
             a.x * world_scale, a.y * world_scale,
-            a.x * world_scale + force_a.x/10,
-            a.y * world_scale + force_a.y/10)
+            a.x * world_scale + force_a.x/self.k,
+            a.y * world_scale + force_a.y/self.k)
         self.forceLineB.setLine(
             b.x * world_scale, b.y * world_scale,
-            b.x * world_scale + force_b.x/10,
-            b.y * world_scale + force_b.y/10)
+            b.x * world_scale + force_b.x/self.k,
+            b.y * world_scale + force_b.y/self.k)
         self.last_extension = extension
 
     def getStartPoint(self):

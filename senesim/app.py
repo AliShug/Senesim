@@ -20,6 +20,7 @@ class Window(QWidget):
         self.mouseDrag = None
         self.mouseJoint = None
         self.mouseItem = None
+        self.controlPane.clear()
 
     def reset(self):
         '''Generates the world, including all bodies, joints, and elastics.'''

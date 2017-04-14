@@ -109,3 +109,13 @@ class ControlPane(QScrollArea):
 
     def addComboControl(self, label, elastic_a, elastic_b):
         self.layout.addWidget(ComboSliderBox(label, elastic_a, elastic_b))
+
+    def clear(self):
+        while self.layout.count() > 0:
+            item = self.layout.takeAt(0)
+            if not item:
+                continue
+            w = item.widget()
+            if w:
+                w.deleteLater()
+        self.layout.addStretch(1)

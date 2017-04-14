@@ -6,11 +6,11 @@ from Box2D import *
 
 from senesim import QSliderD
 
-class ElasticSliderBox(QWidget):
+class ElasticSliderBox(QGroupBox):
     def __init__(self, elastic):
         self.minHeight = 40
         self.expandHeight = 90
-        super(ElasticSliderBox, self).__init__()
+        super(ElasticSliderBox, self).__init__(elastic.label)
         # Slider box
         self.elastic = elastic
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -21,16 +21,32 @@ class ElasticSliderBox(QWidget):
         box_layout = QHBoxLayout()
         box_layout.setContentsMargins(5,5,5,5)
         expander_stack.addLayout(box_layout)
-        box_layout.addWidget(QLabel(elastic.label))
+        box_layout.addWidget(QLabel('Rest Length'))
 
         # The actual slider
-        slider = QSliderD(Qt.Horizontal, divisor=1)
+        slider = QSliderD(Qt.Horizontal, divisor=10)
         slider.setLimits(-100, 100)
         rest = elastic.restLength
         def valChange():
             elastic.setRestLength(rest + slider.value())
+            self.textBox.setText('{0:.1f}'.format(slider.value()))
         slider.valueChanged.connect(valChange)
         expander_stack.addWidget(slider)
+
+        # Text readout
+        self.textBox = QLineEdit('0.0')
+        self.textBox.setMaximumWidth(80)
+        def textChange():
+            try:
+                val = float(self.textBox.text())
+            except:
+                return
+            elastic.setRestLength(rest + val)
+            slider.blockSignals(True)
+            slider.setValue(val)
+            slider.blockSignals(False)
+        self.textBox.textChanged.connect(textChange)
+        box_layout.addWidget(self.textBox)
 
         # Expand button
         self.expanded = False

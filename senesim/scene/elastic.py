@@ -14,6 +14,7 @@ class Elastic(object):
         self.world = world
         self.scene = scene
         self.contacts = []
+        self.label = 'Unnamed'
 
     def initElastic(self, bodyA, bodyB, anchorA, anchorB, elastic_k, restLength=None):
         self.bodyA = bodyA
@@ -32,6 +33,10 @@ class Elastic(object):
             self.restLength = self.getLength()
             self.calculatedRestLength = True
         self.last_extension = 0
+
+    def setRestLength(self, length):
+        self.restLength = length
+        self.calculatedRestLength = False
 
     def addContact(self, body, point):
         '''Adds a frictionless contact point. Points must be added in order,
@@ -161,3 +166,6 @@ class Elastic(object):
         self.scene.removeItem(self.forceLineB)
         del self.bodyA
         del self.bodyB
+
+    def setLabel(self, label):
+        self.label = label

@@ -48,8 +48,8 @@ class Window(QWidget):
             bodyB=A.body,
             anchor=(0, 0),
             enableLimit=True,
-            lowerAngle=-0.3 * b2_pi,
-            upperAngle=0.2 * b2_pi)
+            lowerAngle=-0.5 * b2_pi,
+            upperAngle=0.5 * b2_pi)
 
         B = Body(self.world, self.scene)
         B.initBox((1, 3), 2, 0.1, label='B', color=arm_color)
@@ -58,28 +58,30 @@ class Window(QWidget):
             bodyB=B.body,
             anchor=(0, 3),
             enableLimit=True,
-            lowerAngle=-0.4 * b2_pi,
-            upperAngle=0.1 * b2_pi)
+            lowerAngle=-0.5 * b2_pi,
+            upperAngle=0.5 * b2_pi)
 
         # Body A tendons
         k = 400
         a1 = Elastic(self.world, self.scene)
-        a1.initElastic(self.groundBody.body, A.body, (0, -1), (-1.0, 0), k)
-        a1.addContact(self.groundBody.body, (-0.6,-0.7))
+        a1.initElastic(self.groundBody.body, A.body, (-0.5, -1), (-0.6, 0), k)
+        a1.setLabel('A Extensor')
         self.addConstraint(a1)
         a2 = Elastic(self.world, self.scene)
-        a2.initElastic(self.groundBody.body, A.body, (0, -1), (1.0, 0), k)
-        a2.addContact(self.groundBody.body, (0.6,-0.7))
+        a2.initElastic(self.groundBody.body, A.body, (0.5, -1), (0.6, 0), k)
+        a2.setLabel('A Flexor')
         self.addConstraint(a2)
 
         # Body B tendons
         b1 = Elastic(self.world, self.scene)
         b1.initElastic(self.groundBody.body, B.body, (-1, -1), (-0.6, 3), k)
         b1.addContact(A.body, (-0.6, 0.5))
+        b1.setLabel('B Extensor')
         self.addConstraint(b1)
         b2 = Elastic(self.world, self.scene)
         b2.initElastic(self.groundBody.body, B.body, (1, -1), (0.6, 3), k)
         b2.addContact(A.body, (0.6, 0.5))
+        b2.setLabel('B Flexor')
         self.addConstraint(b2)
 
         # Arm load
@@ -100,7 +102,12 @@ class Window(QWidget):
         rope = Elastic(self.world, self.scene)
         rope.initElastic(leftPole.body, rightPole.body, (-3,7), (1,5), 1)
         rope.addContact(ball.body, (0,5))
+        rope.setLabel('Rope')
         self.addConstraint(rope)
+
+        # Controls
+        self.controlPane.addComboControl('A', a1, a2)
+        self.controlPane.addComboControl('B', b1, b2)
 
         # mouse logic
         self.mouseDrag = MouseDrag(self)
@@ -200,6 +207,8 @@ class Window(QWidget):
         self._active = False
 
     def addConstraint(self, constraint):
+        if type(constraint) == Elastic:
+            self.controlPane.addElastic(constraint)
         self.constraints.append(constraint)
 
     def togglePause(self):

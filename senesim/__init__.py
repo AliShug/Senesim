@@ -1,4 +1,5 @@
 from .interaction import MouseDrag
+from .uiext import *
 from .controlpane import ControlPane
 from .app import Window
 

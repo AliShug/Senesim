@@ -48,3 +48,7 @@ class QSliderD(QSlider):
     def setLimits(self, min, max):
         self.setMinimum(min)
         self.setMaximum(max)
+
+    # Pane full of sliders - don't want to adjust slider instead of scrolling
+    def wheelEvent(self, e):
+        pass

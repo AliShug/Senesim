@@ -8,14 +8,21 @@ from senesim import QSliderD
 
 class ElasticSliderBox(QWidget):
     def __init__(self, elastic):
+        self.minHeight = 40
+        self.expandHeight = 90
         super(ElasticSliderBox, self).__init__()
         # Slider box
         self.elastic = elastic
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.setMinimumWidth(160)
-        self.setMinimumHeight(40)
-        box_layout = QHBoxLayout(self)
+        self.setMinimumHeight(self.minHeight)
+        expander_stack = QVBoxLayout(self)
+        expander_stack.setContentsMargins(0,0,0,0)
+        box_layout = QHBoxLayout()
+        box_layout.setContentsMargins(5,5,5,5)
+        expander_stack.addLayout(box_layout)
         box_layout.addWidget(QLabel(elastic.label))
+
         # The actual slider
         slider = QSliderD(Qt.Horizontal, divisor=1)
         slider.setLimits(-100, 100)
@@ -23,7 +30,38 @@ class ElasticSliderBox(QWidget):
         def valChange():
             elastic.setRestLength(rest + slider.value())
         slider.valueChanged.connect(valChange)
-        box_layout.addWidget(slider)
+        expander_stack.addWidget(slider)
+
+        # Expand button
+        self.expanded = False
+        self.expander = QPushButton('+')
+        self.expander.setMaximumWidth(20)
+        self.expander.clicked.connect(self.toggleExpand)
+        box_layout.addWidget(self.expander)
+
+        self.expandWidget = QWidget()
+        expander_stack.addWidget(self.expandWidget)
+        expanded_layout = QFormLayout(self.expandWidget)
+        expanded_layout.addRow(QLabel('Hello'), QLabel('World'))
+        self.contract()
+
+    def toggleExpand(self):
+        if self.expanded:
+            self.contract()
+        else:
+            self.expand()
+
+    def expand(self):
+        self.expander.setText('-')
+        self.setMinimumHeight(self.expandHeight)
+        self.expanded = True
+        self.expandWidget.show()
+
+    def contract(self):
+        self.expander.setText('+')
+        self.setMinimumHeight(self.minHeight)
+        self.expanded = False
+        self.expandWidget.hide()
 
 class ComboSliderBox(QWidget):
     def __init__(self, label, elastic_a, elastic_b):
@@ -31,7 +69,7 @@ class ComboSliderBox(QWidget):
         # Slider box
         self.elastic_a = elastic_a
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.setMinimumWidth(160)
+        self.setMinimumWidth(170)
         self.setMinimumHeight(40)
         box_layout = QHBoxLayout(self)
         box_layout.addWidget(QLabel(label))
@@ -57,6 +95,7 @@ class ControlPane(QScrollArea):
         self.layout = QBoxLayout(QBoxLayout.BottomToTop, self.myWidget)
         self.myWidget.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.layout.addStretch(1)
+        self.layout.setContentsMargins(5,5,5,5)
 
         self.elastics = []
 

@@ -7,6 +7,7 @@ from Box2D import *
 from senesim import *
 from senesim.config import *
 
+elastic_pen = QPen(QBrush(Qt.black), 2)
 
 class Elastic(object):
 
@@ -21,7 +22,8 @@ class Elastic(object):
         self.localAnchorA = bodyA.GetLocalPoint(anchorA)
         self.localAnchorB = bodyB.GetLocalPoint(anchorB)
         self.k = elastic_k
-        self.graphics = [self.scene.addLine(0,0,0,0)]
+        self.graphics_pen = QPen(elastic_pen)
+        self.graphics = self.scene.addPath(QPainterPath(), pen=self.graphics_pen)
         self.forceLineA = self.scene.addLine(0,0,0,0, QPen(Qt.red, 3))
         self.forceLineB = self.scene.addLine(0,0,0,0, QPen(Qt.blue, 3))
         self.contactForceLines = []
@@ -48,7 +50,6 @@ class Elastic(object):
             'body': body,
             'point': pointLocal
         })
-        self.graphics.append(self.scene.addLine(0,0,0,0))
         self.contactForceLines.append(self.scene.addLine(0,0,0,0, QPen(Qt.green, 3)))
         if self.calculatedRestLength:
             self.restLength = self.getLength()
@@ -153,10 +154,20 @@ class Elastic(object):
 
     def updateGraphics(self):
         segments = self.getLineDefs()
-        graphics_itr = iter(self.graphics)
-        for line in segments:
-            graphics_line = next(graphics_itr)
-            graphics_line.setLine(line)
+        new_path = QPainterPath()
+        new_path.moveTo(segments[-1].p2())
+        for line in reversed(segments):
+            new_path.lineTo(line.p1())
+        self.graphics.setPath(new_path)
+        # Scale and move the pen's dash rendering
+        scaling = self.getLength()/self.restLength
+        self.graphics_pen.setDashPattern([5 * scaling, 2 * scaling])
+        if scaling < 1:
+            self.graphics_pen.setColor(QColor(100,100,100))
+        else:
+            self.graphics_pen.setColor(Qt.black)
+        self.graphics.setPen(self.graphics_pen)
+
 
     def getLength(self):
         length = 0
@@ -165,8 +176,7 @@ class Elastic(object):
         return length
 
     def cleanup(self):
-        for graphics_line in self.graphics:
-            self.scene.removeItem(graphics_line)
+        self.scene.removeItem(self.graphics)
         self.scene.removeItem(self.forceLineA)
         self.scene.removeItem(self.forceLineB)
         del self.bodyA

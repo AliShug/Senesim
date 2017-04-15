@@ -14,7 +14,6 @@ class Elastic(object):
         self.world = world
         self.scene = scene
         self.contacts = []
-        self.label = 'Unnamed'
 
     def initElastic(self, bodyA, bodyB, anchorA, anchorB, elastic_k, restLength=None):
         self.bodyA = bodyA
@@ -54,11 +53,12 @@ class Elastic(object):
         if self.calculatedRestLength:
             self.restLength = self.getLength()
 
-    def updateForces(self, delta_t):
-        # Forces model simple elastic stress, and dependent on strain
-        a = self.bodyA.GetWorldPoint(self.localAnchorA)
-        b = self.bodyB.GetWorldPoint(self.localAnchorB)
-        extension = self.getLength() - self.restLength
+    def getExtension(self):
+        return self.getLength() - self.restLength
+
+    def getInternalForce(self, delta_t):
+        # Forces model simple elastic stress, and is dependent on strain
+        extension = self.getExtension()
         extension_rate = (extension - self.last_extension) / delta_t
         if extension > 0:
             resistance = self.k * extension_rate * 0.01
@@ -67,7 +67,12 @@ class Elastic(object):
             resistance = 0
             elastic_force = 0
 
-        f = resistance + elastic_force
+        return resistance + elastic_force
+
+    def updateForces(self, delta_t):
+        a = self.bodyA.GetWorldPoint(self.localAnchorA)
+        b = self.bodyB.GetWorldPoint(self.localAnchorB)
+        f = self.getInternalForce(delta_t)
         if len(self.contacts) > 0:
             contact = self.contacts[0]
             c0 = contact['body'].GetWorldPoint(contact['point'])
@@ -123,7 +128,7 @@ class Elastic(object):
             b.x * world_scale, b.y * world_scale,
             b.x * world_scale + force_b.x/self.k,
             b.y * world_scale + force_b.y/self.k)
-        self.last_extension = extension
+        self.last_extension = self.getExtension()
 
     def getStartPoint(self):
         return self.bodyA.GetWorldPoint(self.localAnchorA) * world_scale
@@ -166,6 +171,3 @@ class Elastic(object):
         self.scene.removeItem(self.forceLineB)
         del self.bodyA
         del self.bodyB
-
-    def setLabel(self, label):
-        self.label = label

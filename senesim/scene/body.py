@@ -20,7 +20,9 @@ class Body(object):
 
     def initBox(self, pos, width, height,
                 static=False, color=default_color,
-                label=None):
+                label=None, density=default_density,
+                friction=default_friction,
+                restitution=default_restitution):
         if self._initialized:
             raise Exception("Body already initialized")
 
@@ -55,9 +57,9 @@ class Body(object):
                 angularDamping=default_damp_angular)
             self.box = self.body.CreatePolygonFixture(
                 box=(width, height),
-                density=default_density,
-                friction=default_friction,
-                restitution=default_restitution)
+                density=density,
+                friction=friction,
+                restitution=restitution)
 
     def initCircle(self, pos, radius,
                    static=False, color=default_color,

@@ -27,6 +27,9 @@ class QSliderD(QSlider):
     def setSliderPosition(self, val):
         super(QSliderD, self).setSliderPosition(int(val * self.divisor))
 
+    def setTickInterval(self, val):
+        super(QSliderD, self).setTickInterval(int(val * self.divisor))
+
     def value(self):
         return super(QSliderD, self).value() / self.divisor
 
@@ -44,6 +47,9 @@ class QSliderD(QSlider):
 
     def sliderPosition(self):
         return super(QSliderD, self).sliderPosition() / self.divisor
+
+    def tickInterval(self):
+        return super(QSliderD, self).tickInterval() / self.divisor
 
     def setLimits(self, min, max):
         self.setMinimum(min)

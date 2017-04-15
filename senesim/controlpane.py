@@ -6,15 +6,19 @@ from Box2D import *
 
 from senesim import QSliderD
 
+length_str = '{0:.1f}'
+k_str = '{0:.1f}'
+length_range = 100
+
 class ElasticSliderBox(QGroupBox):
-    def __init__(self, elastic):
+    def __init__(self, elastic_controller):
         self.minHeight = 40
         self.expandHeight = 90
-        super(ElasticSliderBox, self).__init__(elastic.label)
+        super(ElasticSliderBox, self).__init__(elastic_controller.label)
         # Slider box
-        self.elastic = elastic
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.setMinimumWidth(160)
+        self.elastic_controller = elastic_controller
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.setFixedWidth(170)
         self.setMinimumHeight(self.minHeight)
         expander_stack = QVBoxLayout(self)
         expander_stack.setContentsMargins(0,0,0,0)
@@ -25,27 +29,34 @@ class ElasticSliderBox(QGroupBox):
 
         # The actual slider
         slider = QSliderD(Qt.Horizontal, divisor=10)
-        slider.setLimits(-100, 100)
-        rest = elastic.restLength
+        slider.setLimits(-length_range, length_range)
         def valChange():
-            elastic.setRestLength(rest + slider.value())
-            self.textBox.setText('{0:.1f}'.format(slider.value()))
+            elastic_controller.setTarget(slider.value())
+            self.textBox.setText(length_str.format(slider.value()))
+        def valExternalChange():
+            slider.blockSignals(True)
+            slider.setValue(elastic_controller.getTarget())
+            slider.blockSignals(False)
+            self.textBox.setText(length_str.format(elastic_controller.getTarget()))
         slider.valueChanged.connect(valChange)
+        slider.setTickInterval(10)
+        slider.setTickPosition(QSlider.TicksBelow)
+        elastic_controller.subscribeChange(valExternalChange)
         expander_stack.addWidget(slider)
 
         # Text readout
-        self.textBox = QLineEdit('0.0')
+        self.textBox = QLineEdit(length_str.format(0))
         self.textBox.setMaximumWidth(80)
-        def textChange():
+        def lengthTextChange():
             try:
                 val = float(self.textBox.text())
             except:
                 return
-            elastic.setRestLength(rest + val)
+            elastic_controller.setTarget(val)
             slider.blockSignals(True)
             slider.setValue(val)
             slider.blockSignals(False)
-        self.textBox.textChanged.connect(textChange)
+        self.textBox.textChanged.connect(lengthTextChange)
         box_layout.addWidget(self.textBox)
 
         # Expand button
@@ -55,10 +66,39 @@ class ElasticSliderBox(QGroupBox):
         self.expander.clicked.connect(self.toggleExpand)
         box_layout.addWidget(self.expander)
 
+        # Expand content - additional controls
         self.expandWidget = QWidget()
         expander_stack.addWidget(self.expandWidget)
         expanded_layout = QFormLayout(self.expandWidget)
-        expanded_layout.addRow(QLabel('Hello'), QLabel('World'))
+        range_box = QLineEdit(length_str.format(length_range))
+        def rangeTextChange():
+            try:
+                val = float(range_box.text())
+            except:
+                return
+            elastic_controller.setLimit(val)
+            slider.blockSignals(True)
+            slider.setLimits(-val, val)
+            try:
+                len = elastic_controller.getTarget()
+                slider.setValue(len)
+            except:
+                pass
+            slider.blockSignals(False)
+        range_box.textEdited.connect(rangeTextChange)
+        expanded_layout.addRow(QLabel('Slider range'), range_box)
+        k_box = QLineEdit(k_str.format(elastic_controller.elastic.k))
+        def kTextChange():
+            try:
+                val = float(k_box.text())
+            except:
+                return
+            if abs(val) > 0.001:
+                elastic_controller.elastic.k = val
+        k_box.textEdited.connect(kTextChange)
+        expanded_layout.addRow(QLabel('Elastic K'), k_box)
+
+        # Start contracted by default
         self.contract()
 
     def toggleExpand(self):
@@ -69,34 +109,30 @@ class ElasticSliderBox(QGroupBox):
 
     def expand(self):
         self.expander.setText('-')
-        self.setMinimumHeight(self.expandHeight)
+        # self.setMinimumHeight(self.expandHeight)
         self.expanded = True
         self.expandWidget.show()
 
     def contract(self):
         self.expander.setText('+')
-        self.setMinimumHeight(self.minHeight)
+        # self.setMinimumHeight(self.minHeight)
         self.expanded = False
         self.expandWidget.hide()
 
 class ComboSliderBox(QWidget):
-    def __init__(self, label, elastic_a, elastic_b):
+    def __init__(self, label, coupledController):
         super(ComboSliderBox, self).__init__()
         # Slider box
-        self.elastic_a = elastic_a
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.setMinimumWidth(170)
         self.setMinimumHeight(40)
         box_layout = QHBoxLayout(self)
         box_layout.addWidget(QLabel(label))
         # The actual slider
-        slider = QSliderD(Qt.Horizontal, divisor=1)
-        slider.setLimits(-100, 100)
-        rest_a = elastic_a.restLength
-        rest_b = elastic_b.restLength
+        slider = QSliderD(Qt.Horizontal, divisor=100)
+        slider.setLimits(-1, 1)
         def valChange():
-            elastic_a.setRestLength(rest_a + slider.value())
-            elastic_b.setRestLength(rest_b - slider.value())
+            coupledController.setTarget(slider.value())
         slider.valueChanged.connect(valChange)
         box_layout.addWidget(slider)
 
@@ -118,13 +154,13 @@ class ControlPane(QScrollArea):
     def minimumSizeHint(self):
         return QSize(200,0)
 
-    def addElastic(self, elastic):
+    def addElasticController(self, elastic):
         '''Adds controls for an elastic thread'''
         slider_box = ElasticSliderBox(elastic)
         self.layout.addWidget(slider_box)
 
-    def addComboControl(self, label, elastic_a, elastic_b):
-        self.layout.addWidget(ComboSliderBox(label, elastic_a, elastic_b))
+    def addComboController(self, label, coupledController):
+        self.layout.addWidget(ComboSliderBox(label, coupledController))
 
     def clear(self):
         while self.layout.count() > 0:

@@ -15,6 +15,7 @@ class Window(QWidget):
         for constraint in self.constraints:
             constraint.cleanup()
         self.constraints.clear()
+        self.controllers.clear()
         for body in self.world.bodies:
             body.userData.cleanup()
         self.mouseDrag = None
@@ -66,24 +67,28 @@ class Window(QWidget):
         k = 400
         a1 = Elastic(self.world, self.scene)
         a1.initElastic(self.groundBody.body, A.body, (-0.5, -1), (-0.6, 0), k)
-        a1.setLabel('A Extensor')
+        a1_controller = TendonController(a1, 'A Extensor')
         self.addConstraint(a1)
+        self.addTendonController(a1_controller)
         a2 = Elastic(self.world, self.scene)
         a2.initElastic(self.groundBody.body, A.body, (0.5, -1), (0.6, 0), k)
-        a2.setLabel('A Flexor')
+        a2_controller = TendonController(a2, 'A Flexor')
         self.addConstraint(a2)
+        self.addTendonController(a2_controller)
 
         # Body B tendons
         b1 = Elastic(self.world, self.scene)
         b1.initElastic(self.groundBody.body, B.body, (-1, -1), (-0.6, 3), k)
         b1.addContact(A.body, (-0.6, 0.5))
-        b1.setLabel('B Extensor')
+        b1_controller = TendonController(b1, 'B Extensor')
         self.addConstraint(b1)
+        self.addTendonController(b1_controller)
         b2 = Elastic(self.world, self.scene)
         b2.initElastic(self.groundBody.body, B.body, (1, -1), (0.6, 3), k)
         b2.addContact(A.body, (0.6, 0.5))
-        b2.setLabel('B Flexor')
+        b2_controller = TendonController(b2, 'B Flexor')
         self.addConstraint(b2)
+        self.addTendonController(b2_controller)
 
         # Arm load
         self.load = Load(self.world, self.scene, B.body, (3, 3))
@@ -92,7 +97,12 @@ class Window(QWidget):
         # extras
         for i in range(10):
             body = Body(self.world, self.scene)
-            body.initBox((-2, i + 1), 0.4, 0.4)
+            if i > 0:
+                body.initBox((-2, i + 1), 0.4, 0.4)
+            else:
+                body.initBox((-2, i + 1), 0.4, 0.4,
+                             color=QColor(60,60,60),
+                             density=6)
 
         leftPole = Body(self.world, self.scene)
         leftPole.initBox((-3, 7), 0.2, 0.2, static=True)
@@ -103,12 +113,13 @@ class Window(QWidget):
         rope = Elastic(self.world, self.scene)
         rope.initElastic(leftPole.body, rightPole.body, (-3,7), (1,5), 1)
         rope.addContact(ball.body, (0,5))
-        rope.setLabel('Rope')
         self.addConstraint(rope)
 
         # Controls
-        self.controlPane.addComboControl('A', a1, a2)
-        self.controlPane.addComboControl('B', b1, b2)
+        a_combo = CoupledTendonController(a1_controller, a2_controller)
+        b_combo = CoupledTendonController(b1_controller, b2_controller)
+        self.controlPane.addComboController('B', b_combo)
+        self.controlPane.addComboController('A', a_combo)
 
         # mouse logic
         self.mouseDrag = MouseDrag(self)
@@ -168,6 +179,7 @@ class Window(QWidget):
         # physics
         self.world = b2World(warmStarting=world_warm_start)
         self.constraints = []
+        self.controllers = []
 
         # Generate scene
         self.reset()
@@ -208,9 +220,11 @@ class Window(QWidget):
         self._active = False
 
     def addConstraint(self, constraint):
-        if type(constraint) == Elastic:
-            self.controlPane.addElastic(constraint)
         self.constraints.append(constraint)
+
+    def addTendonController(self, controller):
+        self.controlPane.addElasticController(controller)
+        self.controllers.append(controller)
 
     def togglePause(self):
         self.paused = not self.paused
@@ -225,6 +239,8 @@ class Window(QWidget):
                 self.label.setText('Frame %d' % self.frame_n)
                 # physics update
                 for i in range(world_outer_iterations):
+                    for controller in self.controllers:
+                        controller.update(1 / world_fps)
                     for constraint in self.constraints:
                         constraint.updateForces(1 / world_fps)
                     self.world.Step(

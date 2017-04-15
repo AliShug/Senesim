@@ -10,7 +10,7 @@ from senesim import Window
 
 # Program entry point
 if __name__ == "__main__":
-
+    print(sys.argv)
     app = QApplication(sys.argv)
     window = Window()
     window.show()

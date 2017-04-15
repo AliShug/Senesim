@@ -32,7 +32,7 @@ class Body(object):
             (-height) * world_scale,
             width * world_scale * 2,
             height * world_scale * 2,
-            brush=QBrush(color))
+            brush=QBrush(QColor.fromRgbF(color[0], color[1], color[2])))
         self.graphics.setData(0, self)
         self.static = static
 

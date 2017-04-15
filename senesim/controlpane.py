@@ -8,6 +8,8 @@ from senesim import QSliderD
 
 length_str = '{0:.1f}'
 k_str = '{0:.1f}'
+force_str = '{0:.1f}'
+speed_str = '{0:.1f}'
 length_range = 100
 
 class ElasticSliderBox(QGroupBox):
@@ -87,6 +89,7 @@ class ElasticSliderBox(QGroupBox):
             slider.blockSignals(False)
         range_box.textEdited.connect(rangeTextChange)
         expanded_layout.addRow(QLabel('Slider range'), range_box)
+
         k_box = QLineEdit(k_str.format(elastic_controller.elastic.k))
         def kTextChange():
             try:
@@ -97,6 +100,27 @@ class ElasticSliderBox(QGroupBox):
                 elastic_controller.elastic.k = val
         k_box.textEdited.connect(kTextChange)
         expanded_layout.addRow(QLabel('Elastic K'), k_box)
+
+        force_box = QLineEdit(force_str.format(elastic_controller.maxForce))
+        def forceTextChange():
+            try:
+                val = float(force_box.text())
+            except:
+                return
+            elastic_controller.maxForce = val
+        force_box.textEdited.connect(forceTextChange)
+        expanded_layout.addRow(QLabel('Motor Force'), force_box)
+
+        speed_box = QLineEdit(speed_str.format(elastic_controller.maxSpeed))
+        def speedTextChange():
+            try:
+                val = float(speed_box.text())
+            except:
+                return
+            elastic_controller.maxSpeed = val
+        speed_box.textEdited.connect(speedTextChange)
+        expanded_layout.addRow(QLabel('Motor Speed'), speed_box)
+
 
         # Start contracted by default
         self.contract()

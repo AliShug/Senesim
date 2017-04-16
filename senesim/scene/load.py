@@ -9,7 +9,7 @@ from senesim.config import *
 
 
 class Load(object):
-    def __init__(self, world, scene, body, anchor):
+    def __init__(self, world, scene, body, anchor, max=800):
         self.world = world
         self.scene = scene
         self.body = body
@@ -18,6 +18,7 @@ class Load(object):
         self.line = self.scene.addLine(
             self.getLineDef(),
             QPen(Qt.green, 4))
+        self.max = 800
 
     def setForce(self, force):
         self.force = b2Vec2(force)

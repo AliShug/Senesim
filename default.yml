@@ -55,101 +55,69 @@ joints:
   enableLimit: true
   lowerAngle: -0.5
   upperAngle: 0.5
+- type: revolute
+  bodyA: A
+  bodyB: B
+  anchor: [0, 3]
+  enableLimit: true
+  lowerAngle: -0.5
+  upperAngle: 0.5
 
-# for i in range(10):
-#     body = Body(self.world, self.scene)
-#     if i > 0:
-#         body.initBox((-2, i + 1), 0.4, 0.4)
-#     else:
-#         body.initBox((-2, i + 1), 0.4, 0.4,
-#                      color=QColor(60,60,60),
-#                      density=6)
 
-# rightWall = Body(self.world, self.scene)
-# rightWall.initBox((10, 5), 1, 10, static=True)
-#
-# # Label(self.scene, QPoint(10, 30), 'Arm')
-#
-# # elastic-supported arm
-# arm_color = QColor.fromRgbF(0.8, 0.8, 1)
-# A = Body(self.world, self.scene)
-# A.initBox(
-#     (0, 1.5),
-#     0.2, 1.5,
-#     label='A',
-#     color=arm_color)
-# self.world.CreateRevoluteJoint(
-#     bodyA=self.groundBody.body,
-#     bodyB=A.body,
-#     anchor=(0, 0),
-#     enableLimit=True,
-#     lowerAngle=-0.5 * b2_pi,
-#     upperAngle=0.5 * b2_pi)
-#
-# B = Body(self.world, self.scene)
-# B.initBox((1, 3), 2, 0.1, label='B', color=arm_color)
-# self.world.CreateRevoluteJoint(
-#     bodyA=A.body,
-#     bodyB=B.body,
-#     anchor=(0, 3),
-#     enableLimit=True,
-#     lowerAngle=-0.5 * b2_pi,
-#     upperAngle=0.5 * b2_pi)
-#
-# # Body A tendons
-# k = 400
-# a1 = Elastic(self.world, self.scene)
-# a1.initElastic(self.groundBody.body, A.body, (-0.5, -1), (-0.6, 0), k)
-# a1_controller = TendonController(a1, 'A Extensor')
-# self.addConstraint(a1)
-# self.addTendonController(a1_controller)
-# a2 = Elastic(self.world, self.scene)
-# a2.initElastic(self.groundBody.body, A.body, (0.5, -1), (0.6, 0), k)
-# a2_controller = TendonController(a2, 'A Flexor')
-# self.addConstraint(a2)
-# self.addTendonController(a2_controller)
-#
-# # Body B tendons
-# b1 = Elastic(self.world, self.scene)
-# b1.initElastic(self.groundBody.body, B.body, (-1, -1), (-0.6, 3), k)
-# b1.addContact(A.body, (-0.6, 0.5))
-# b1_controller = TendonController(b1, 'B Extensor')
-# self.addConstraint(b1)
-# self.addTendonController(b1_controller)
-# b2 = Elastic(self.world, self.scene)
-# b2.initElastic(self.groundBody.body, B.body, (1, -1), (0.6, 3), k)
-# b2.addContact(A.body, (0.6, 0.5))
-# b2_controller = TendonController(b2, 'B Flexor')
-# self.addConstraint(b2)
-# self.addTendonController(b2_controller)
-#
-# # Arm load
-# self.load = Load(self.world, self.scene, B.body, (3, 3))
-# self.addConstraint(self.load)
-#
-# # extras
-# for i in range(10):
-#     body = Body(self.world, self.scene)
-#     if i > 0:
-#         body.initBox((-2, i + 1), 0.4, 0.4)
-#     else:
-#         body.initBox((-2, i + 1), 0.4, 0.4,
-#                      color=QColor(60,60,60),
-#                      density=6)
-#
-# leftPole = Body(self.world, self.scene)
-# leftPole.initBox((-3, 7), 0.2, 0.2, static=True)
-# rightPole = Body(self.world, self.scene)
-# rightPole.initBox((1, 5), 0.2, 0.2, static=True)
-# ball = Body(self.world, self.scene)
-# ball.initCircle((0, 4.85), 0.2)
-# rope = Elastic(self.world, self.scene)
-# rope.initElastic(leftPole.body, rightPole.body, (-3,7), (1,5), 1)
-# rope.addContact(ball.body, (0,5))
-# self.addConstraint(rope)
-#
-# # Controls
-# a_combo = CoupledTendonController(a1_controller, a2_controller)
-# b_combo = CoupledTendonController(b1_controller, b2_controller)
-# self.controlPane.addComboController('B', b_combo)
-# self.controlPane.addComboController('A', a_combo)
+elastics:
+- id: a1
+  bodyA: _ground
+  bodyB: A
+  anchorA: [-1.5, -1]
+  anchorB: [-0.6, 1.5]
+  k: 400
+- id: a2
+  bodyA: _ground
+  bodyB: A
+  anchorA: [1.5, -1]
+  anchorB: [0.6, 1.5]
+  k: 400
+- id: b1
+  bodyA: _ground
+  bodyB: B
+  anchorA: [-1, -1]
+  anchorB: [-0.6, 3]
+  k: 300
+  contacts:
+  - body: A
+    point: [-0.6, 0.5]
+- id: b2
+  bodyA: _ground
+  bodyB: B
+  anchorA: [1, -1]
+  anchorB: [0.6, 3]
+  k: 300
+  contacts:
+  - body: A
+    point: [0.6, 0.5]
+
+
+tendon-controllers:
+- elastic: a1
+  label: A Extensor
+- elastic: a2
+  label: A Flexor
+- elastic: b1
+  label: B Extensor
+- elastic: b2
+  label: B Flexor
+
+
+coupled-controllers:
+- extensor: a1
+  flexor: a2
+  label: A
+- extensor: b1
+  flexor: b2
+  label: B
+
+
+loads:
+- body: B
+  anchor: [3, 3]
+  max: 800

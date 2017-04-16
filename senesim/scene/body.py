@@ -63,7 +63,9 @@ class Body(object):
 
     def initCircle(self, pos, radius,
                    static=False, color=default_color,
-                   label=None):
+                   label=None, density=default_density,
+                   friction=default_friction,
+                   restitution=default_restitution):
         if self._initialized:
             raise Exception("Body already initilized")
 
@@ -72,7 +74,7 @@ class Body(object):
             (-radius) * world_scale,
             radius * world_scale * 2,
             radius * world_scale * 2,
-            brush=QBrush(color))
+            brush=QBrush(QColor.fromRgbF(color[0], color[1], color[2])))
         self.graphics.setData(0, self)
         self.static = static
 
@@ -97,9 +99,9 @@ class Body(object):
                 angularDamping=default_damp_angular)
             self.circle = self.body.CreateFixture(
                 shape=b2CircleShape(radius=radius),
-                density=default_density,
-                friction=default_friction,
-                restitution=default_restitution)
+                density=density,
+                friction=friction,
+                restitution=restitution)
 
     def updateGraphics(self):
         pos = self.body.position

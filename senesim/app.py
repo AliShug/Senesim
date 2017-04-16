@@ -43,7 +43,8 @@ class Window(QWidget):
             print(e)
 
         bodies = {'_ground': self.groundBody}
-        print(parsed)
+        elastics = {}
+        controllers = {}
 
         for body in parsed.get('bodies', []):
             new_body = Body(self.world, self.scene)
@@ -97,103 +98,50 @@ class Window(QWidget):
             else:
                 raise Exception('Unknown joint type {0}'.format(type))
 
+        for elastic in parsed.get('elastics', []):
+            new_elastic = Elastic(self.world, self.scene)
+            k = elastic.get('k', 1)
+            new_elastic.initElastic(
+                bodies[elastic['bodyA']].body,
+                bodies[elastic['bodyB']].body,
+                elastic['anchorA'],
+                elastic['anchorB'],
+                k)
+            for contact in elastic.get('contacts', []):
+                new_elastic.addContact(bodies[contact['body']].body,
+                                       contact['point'])
+            self.addConstraint(new_elastic)
+            if 'id' in elastic:
+                elastics[elastic['id']] = new_elastic
+
+        for load in parsed.get('loads', []):
+            body = bodies[load['body']].body
+            anchor = load['anchor']
+            max = load.get('max', 500)
+            new_load = Load(self.world, self.scene, body, anchor, max)
+            label = load.get('label', 'Unnamed Load')
+            self.controlPane.addLoad(label, new_load)
+            self.addConstraint(new_load)
+
+        for controller in parsed.get('tendon-controllers', []):
+            new_controller = TendonController(elastics[controller['elastic']],
+                                              controller['label'])
+            self.addTendonController(new_controller)
+            controllers[controller['elastic']] = new_controller
+
+        for coupled_controller in parsed.get('coupled-controllers', []):
+            extensor = controllers[coupled_controller['extensor']]
+            flexor = controllers[coupled_controller['flexor']]
+            new_controller = CoupledTendonController(extensor, flexor)
+            label = coupled_controller['label']
+            self.controlPane.addComboController(label, new_controller)
+
         for label in parsed.get('labels', []):
             pos = label['pos']
             text = label['text']
             new_label = Label(self.scene,
                               QPoint(pos[0]*world_scale, pos[1]*world_scale),
                               text)
-
-        # leftWall = Body(self.world, self.scene)
-        # leftWall.initBox((-10, 5), 1, 10, static=True)
-        # rightWall = Body(self.world, self.scene)
-        # rightWall.initBox((10, 5), 1, 10, static=True)
-        #
-        # # Label(self.scene, QPoint(10, 30), 'Arm')
-        #
-        # # elastic-supported arm
-        # arm_color = QColor.fromRgbF(0.8, 0.8, 1)
-        # A = Body(self.world, self.scene)
-        # A.initBox(
-        #     (0, 1.5),
-        #     0.2, 1.5,
-        #     label='A',
-        #     color=arm_color)
-        # self.world.CreateRevoluteJoint(
-        #     bodyA=self.groundBody.body,
-        #     bodyB=A.body,
-        #     anchor=(0, 0),
-        #     enableLimit=True,
-        #     lowerAngle=-0.5 * b2_pi,
-        #     upperAngle=0.5 * b2_pi)
-        #
-        # B = Body(self.world, self.scene)
-        # B.initBox((1, 3), 2, 0.1, label='B', color=arm_color)
-        # self.world.CreateRevoluteJoint(
-        #     bodyA=A.body,
-        #     bodyB=B.body,
-        #     anchor=(0, 3),
-        #     enableLimit=True,
-        #     lowerAngle=-0.5 * b2_pi,
-        #     upperAngle=0.5 * b2_pi)
-        #
-        # # Body A tendons
-        # k = 400
-        # a1 = Elastic(self.world, self.scene)
-        # a1.initElastic(self.groundBody.body, A.body, (-0.5, -1), (-0.6, 0), k)
-        # a1_controller = TendonController(a1, 'A Extensor')
-        # self.addConstraint(a1)
-        # self.addTendonController(a1_controller)
-        # a2 = Elastic(self.world, self.scene)
-        # a2.initElastic(self.groundBody.body, A.body, (0.5, -1), (0.6, 0), k)
-        # a2_controller = TendonController(a2, 'A Flexor')
-        # self.addConstraint(a2)
-        # self.addTendonController(a2_controller)
-        #
-        # # Body B tendons
-        # b1 = Elastic(self.world, self.scene)
-        # b1.initElastic(self.groundBody.body, B.body, (-1, -1), (-0.6, 3), k)
-        # b1.addContact(A.body, (-0.6, 0.5))
-        # b1_controller = TendonController(b1, 'B Extensor')
-        # self.addConstraint(b1)
-        # self.addTendonController(b1_controller)
-        # b2 = Elastic(self.world, self.scene)
-        # b2.initElastic(self.groundBody.body, B.body, (1, -1), (0.6, 3), k)
-        # b2.addContact(A.body, (0.6, 0.5))
-        # b2_controller = TendonController(b2, 'B Flexor')
-        # self.addConstraint(b2)
-        # self.addTendonController(b2_controller)
-        #
-        # # Arm load
-        # self.load = Load(self.world, self.scene, B.body, (3, 3))
-        # self.addConstraint(self.load)
-        #
-        # # extras
-        # for i in range(10):
-        #     body = Body(self.world, self.scene)
-        #     if i > 0:
-        #         body.initBox((-2, i + 1), 0.4, 0.4)
-        #     else:
-        #         body.initBox((-2, i + 1), 0.4, 0.4,
-        #                      color=QColor(60,60,60),
-        #                      density=6)
-        #
-        # leftPole = Body(self.world, self.scene)
-        # leftPole.initBox((-3, 7), 0.2, 0.2, static=True)
-        # rightPole = Body(self.world, self.scene)
-        # rightPole.initBox((1, 5), 0.2, 0.2, static=True)
-        # ball = Body(self.world, self.scene)
-        # ball.initCircle((0, 4.85), 0.2)
-        # rope = Elastic(self.world, self.scene)
-        # rope.initElastic(leftPole.body, rightPole.body, (-3,7), (1,5), 1)
-        # rope.addContact(ball.body, (0,5))
-        # self.addConstraint(rope)
-        #
-        # # Controls
-        # a_combo = CoupledTendonController(a1_controller, a2_controller)
-        # b_combo = CoupledTendonController(b1_controller, b2_controller)
-        # self.controlPane.addComboController('B', b_combo)
-        # self.controlPane.addComboController('A', a_combo)
 
         # mouse logic
         self.mouseDrag = MouseDrag(self)
@@ -216,23 +164,7 @@ class Window(QWidget):
         self.label = QLabel('Not started', self)
         buttonsLayout.addWidget(self.label)
         layout.addLayout(buttonsLayout)
-        # Loading slider
-        sliderLayout = QHBoxLayout()
-        self.loadSlider = QSlider(Qt.Horizontal)
-        self.loadSlider.setMinimum(0)
-        self.loadSlider.setMaximum(300)
-        self.loadSlider.setValue(0)
-        self.loadSlider.setTickPosition(QSlider.TicksBelow)
-        self.loadSlider.setTickInterval(10)
-        self.loadSlider.valueChanged.connect(self.sliderChange)
-        sliderLayout.addWidget(QLabel('Load (N):'))
-        sliderLayout.addWidget(self.loadSlider)
-        self.loadInput = QLineEdit()
-        self.loadInput.setMaximumWidth(80)
-        self.loadInput.setText('0')
-        self.loadInput.textChanged.connect(self.textChange)
-        sliderLayout.addWidget(self.loadInput)
-        layout.addLayout(sliderLayout)
+
         # begin ticking
         self._active = True
         self.paused = False
@@ -263,21 +195,6 @@ class Window(QWidget):
 
         # Generate scene
         self.reset()
-
-    def sliderChange(self):
-        self.changeLoad(self.loadSlider.value())
-
-    def textChange(self):
-        try:
-            val = int(self.loadInput.text())
-            self.changeLoad(int(self.loadInput.text()))
-        except:
-            pass
-
-    def changeLoad(self, value):
-        self.load.setForce((0, -value))
-        self.loadSlider.setValue(value)
-        self.loadInput.setText(str(value))
 
     def eventFilter(self, source, event):
         """Event filter for graphicsview interaction"""

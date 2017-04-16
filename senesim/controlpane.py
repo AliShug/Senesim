@@ -160,6 +160,97 @@ class ComboSliderBox(QWidget):
         slider.valueChanged.connect(valChange)
         box_layout.addWidget(slider)
 
+class LoadSliderBox(QGroupBox):
+    def __init__(self, label, load):
+        super(LoadSliderBox, self).__init__(label)
+        # Slider box
+        self.load = load
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.setFixedWidth(170)
+        self.setMinimumHeight(40)
+        expander_stack = QVBoxLayout(self)
+        expander_stack.setContentsMargins(0,0,0,0)
+        box_layout = QHBoxLayout()
+        box_layout.setContentsMargins(5,5,5,5)
+        expander_stack.addLayout(box_layout)
+        box_layout.addWidget(QLabel('Load (N)'))
+
+        # The actual slider
+        slider = QSliderD(Qt.Horizontal, divisor=10)
+        slider.setLimits(0, load.max)
+        def valChange():
+            load.setForce([0, -slider.value()])
+            self.textBox.setText(force_str.format(slider.value()))
+        slider.valueChanged.connect(valChange)
+        slider.setTickInterval(10)
+        slider.setTickPosition(QSlider.TicksBelow)
+        expander_stack.addWidget(slider)
+
+        # Text readout
+        self.textBox = QLineEdit(force_str.format(0))
+        self.textBox.setMaximumWidth(80)
+        def textChange():
+            try:
+                val = float(self.textBox.text())
+            except:
+                return
+            load.setForce([0, -val])
+            slider.blockSignals(True)
+            slider.setValue(val)
+            slider.blockSignals(False)
+        self.textBox.textChanged.connect(textChange)
+        box_layout.addWidget(self.textBox)
+
+        # Expand button
+        self.expanded = False
+        self.expander = QPushButton('+')
+        self.expander.setMaximumWidth(20)
+        self.expander.clicked.connect(self.toggleExpand)
+        box_layout.addWidget(self.expander)
+
+        # Expand content - additional controls
+        self.expandWidget = QWidget()
+        expander_stack.addWidget(self.expandWidget)
+        expanded_layout = QFormLayout(self.expandWidget)
+        range_box = QLineEdit(length_str.format(load.max))
+        def rangeTextChange():
+            try:
+                val = float(range_box.text())
+            except:
+                return
+            load.max = val
+            slider.blockSignals(True)
+            slider.setLimits(0, load.max)
+            try:
+                f = -load.force.y
+                slider.setValue(f)
+            except:
+                pass
+            slider.blockSignals(False)
+        range_box.textEdited.connect(rangeTextChange)
+        expanded_layout.addRow(QLabel('Max Load (N)'), range_box)
+
+        # Start contracted by default
+        self.contract()
+
+    def toggleExpand(self):
+        if self.expanded:
+            self.contract()
+        else:
+            self.expand()
+
+    def expand(self):
+        self.expander.setText('-')
+        # self.setMinimumHeight(self.expandHeight)
+        self.expanded = True
+        self.expandWidget.show()
+
+    def contract(self):
+        self.expander.setText('+')
+        # self.setMinimumHeight(self.minHeight)
+        self.expanded = False
+        self.expandWidget.hide()
+
 class ControlPane(QScrollArea):
     def __init__(self):
         QScrollArea.__init__(self)
@@ -185,6 +276,9 @@ class ControlPane(QScrollArea):
 
     def addComboController(self, label, coupledController):
         self.layout.addWidget(ComboSliderBox(label, coupledController))
+
+    def addLoad(self, label, load):
+        self.layout.addWidget(LoadSliderBox(label, load))
 
     def clear(self):
         while self.layout.count() > 0:

@@ -1,0 +1,75 @@
+bodies:
+  - id: left-wall
+    type: box
+    pos: [-10, 4]
+    width: 1
+    height: 11
+    static: true
+  - id: right-wall
+    type: box
+    pos: [10, 4]
+    width: 1
+    height: 11
+    static: true
+  - id: top-wall
+    type: box
+    pos: [0, 15]
+    width: 11
+    height: 1
+    static: true
+
+  - id: left-pole
+    pos: [-3, 7]
+    width: 0.2
+    height: 0.2
+    color: [0.8, 0.8, 1]
+    static: true
+  - id: right-pole
+    pos: [1, 5]
+    width: 0.2
+    height: 0.2
+    color: [0.8, 0.8, 1]
+    static: true
+  - id: ball
+    type: circle
+    pos: [0, 4.85]
+    radius: 0.2
+  - id: ball2
+    type: circle
+    pos: [-1, 4.85]
+    radius: 0.2
+
+elastics:
+- id: rope
+  bodyA: left-pole
+  bodyB: right-pole
+  anchorA: [-3, 7]
+  anchorB: [1, 5]
+  k: 10
+  contacts:
+  - body: ball
+    point: [0, 5]
+  - body: ball2
+    point: [-1, 5]
+
+tendon-controllers:
+- elastic: rope
+  label: Rope
+
+loads:
+- body: ball
+  anchor: [0, 4.85]
+  label: Ball Load
+  max: 400
+
+
+# leftPole = Body(self.world, self.scene)
+# leftPole.initBox((-3, 7), 0.2, 0.2, static=True)
+# rightPole = Body(self.world, self.scene)
+# rightPole.initBox((1, 5), 0.2, 0.2, static=True)
+# ball = Body(self.world, self.scene)
+# ball.initCircle((0, 4.85), 0.2)
+# rope = Elastic(self.world, self.scene)
+# rope.initElastic(leftPole.body, rightPole.body, (-3,7), (1,5), 1)
+# rope.addContact(ball.body, (0,5))
+# self.addConstraint(rope)

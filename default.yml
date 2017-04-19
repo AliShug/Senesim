@@ -71,18 +71,21 @@ elastics:
   anchorA: [-1.5, -1]
   anchorB: [-0.6, 1.5]
   k: 400
+  damping: 10
 - id: a2
   bodyA: _ground
   bodyB: A
   anchorA: [1.5, -1]
   anchorB: [0.6, 1.5]
   k: 400
+  damping: 10
 - id: b1
   bodyA: _ground
   bodyB: B
   anchorA: [-1, -1]
   anchorB: [-0.6, 3]
   k: 300
+  damping: 10
   contacts:
   - body: A
     point: [-0.6, 0.5]
@@ -92,6 +95,7 @@ elastics:
   anchorA: [1, -1]
   anchorB: [0.6, 3]
   k: 300
+  damping: 10
   contacts:
   - body: A
     point: [0.6, 0.5]

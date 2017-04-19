@@ -1,0 +1,108 @@
+bodies:
+  - id: A
+    pos: [0.5, 0]
+    width: 0.4
+    height: 0.1
+  - id: B
+    pos: [1.2, 0]
+    width: 0.3
+    height: 0.1
+  - id: C
+    pos: [1.7, 0]
+    width: 0.2
+    height: 0.1
+
+  - id: lower-anchor
+    type: circle
+    pos: [-0.2, -0.1]
+    radius: 0.1
+    static: true
+  - id: upper-anchor
+    type: circle
+    pos: [-0.2, 0.1]
+    radius: 0.1
+    static: true
+
+joints:
+  - type: revolute
+    bodyA: _ground
+    bodyB: A
+    anchor: [0.1, 0]
+    enableMotor: true
+    maxMotorTorque: 0.1
+    motorSpeed: 0
+    enableLimit: true
+    lowerAngle: 0.05
+    upperAngle: 0.4
+  - type: revolute
+    bodyA: A
+    bodyB: B
+    anchor: [0.9, 0]
+    enableMotor: true
+    maxMotorTorque: 0.1
+    motorSpeed: 0
+    enableLimit: true
+    lowerAngle: 0.05
+    upperAngle: 0.4
+  - type: revolute
+    bodyA: B
+    bodyB: C
+    anchor: [1.5, 0]
+    enableMotor: true
+    maxMotorTorque: 0.05
+    motorSpeed: 0
+    enableLimit: true
+    lowerAngle: 0.05
+    upperAngle: 0.3
+
+elastics:
+  - id: upper-elastic
+    bodyA: upper-anchor
+    bodyB: C
+    anchorA: [0, 0.1]
+    anchorB: [1.7, 0.1]
+    k: 1
+    # contacts:
+    #   - body: A
+    #     point: [0.45, 0.35]
+    #   - body: A
+    #     point: [1.15, 0.35]
+    #   - body: B
+    #     point: [1.35, 0.35]
+    #   - body: B
+    #     point: [2.05, 0.35]
+    #   - body: C
+    #     point: [2.25, 0.35]
+    contacts:
+      - body: A
+        point: [0.8, 0.1]
+      - body: B
+        point: [1.2, 0.1]
+  - id: lower-elastic
+    bodyA: lower-anchor
+    bodyB: C
+    anchorA: [0, -0.1]
+    anchorB: [1.7, -0.1]
+    k: 1
+    # contacts:
+    #   - body: A
+    #     point: [0.45, 0.05]
+    #   - body: A
+    #     point: [1.15, 0.05]
+    #   - body: B
+    #     point: [1.35, 0.05]
+    #   - body: B
+    #     point: [2.05, 0.05]
+    #   - body: C
+    #     point: [2.25, 0.05]
+    contacts:
+      - body: A
+        point: [0.5, -0.1]
+      - body: B
+        point: [1.2, -0.1]
+
+tendon-controllers:
+- elastic: lower-elastic
+  label: Lower
+- elastic: upper-elastic
+  label: Upper

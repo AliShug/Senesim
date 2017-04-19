@@ -101,12 +101,13 @@ class Window(QWidget):
         for elastic in parsed.get('elastics', []):
             new_elastic = Elastic(self.world, self.scene)
             k = elastic.get('k', 1)
+            damp = elastic.get('damping', 1)
             new_elastic.initElastic(
                 bodies[elastic['bodyA']].body,
                 bodies[elastic['bodyB']].body,
                 elastic['anchorA'],
                 elastic['anchorB'],
-                k)
+                k, damping=damp)
             for contact in elastic.get('contacts', []):
                 new_elastic.addContact(bodies[contact['body']].body,
                                        contact['point'])
@@ -124,8 +125,13 @@ class Window(QWidget):
             self.addConstraint(new_load)
 
         for controller in parsed.get('tendon-controllers', []):
+            limit = controller.get('limit', 100)
+            max_speed = controller.get('max-speed', 50)
+            max_force = controller.get('max-force', 5000)
             new_controller = TendonController(elastics[controller['elastic']],
-                                              controller['label'])
+                                              controller['label'],
+                                              limit=limit, max_force=max_force,
+                                              max_speed=max_speed)
             self.addTendonController(new_controller)
             controllers[controller['elastic']] = new_controller
 
@@ -153,14 +159,22 @@ class Window(QWidget):
         root_layout.addWidget(self.controlPane)
         layout = QVBoxLayout()
         root_layout.addLayout(layout)
-        # Reset button - resets the scene
         buttonsLayout = QHBoxLayout()
+        # Pause button stops physics calculations, but leaves application
+        # responsive
         self.pauseButton = QPushButton('Toggle Pause', self)
         self.pauseButton.clicked.connect(self.togglePause)
         buttonsLayout.addWidget(self.pauseButton)
+        # Reset button - resets the scene
         self.resetButton = QPushButton('Reset', self)
         self.resetButton.clicked.connect(self.reset)
         buttonsLayout.addWidget(self.resetButton)
+        # Forces button - toggles force visibility
+        self.forcesVisible = True
+        self.forceButton = QPushButton('Toggle Force Display', self)
+        self.forceButton.clicked.connect(self.toggleForces)
+        buttonsLayout.addWidget(self.forceButton)
+        # Label shows frame progression
         self.label = QLabel('Not started', self)
         buttonsLayout.addWidget(self.label)
         layout.addLayout(buttonsLayout)
@@ -174,11 +188,11 @@ class Window(QWidget):
         # graphics
         self.scene = QGraphicsScene()
         self.view = QGraphicsView(self.scene)
+        self.view.viewport().setFocusProxy(None)
         self.view.setRenderHints(
             QPainter.Antialiasing)
         # correct orientation
         self.view.scale(1, -1)
-        self.scene.addEllipse(0, 0, 5, 5)
         layout.addWidget(self.view)
         self.view.viewport().installEventFilter(self)
 
@@ -211,6 +225,9 @@ class Window(QWidget):
         elif event.type() == QEvent.MouseButtonRelease:
             if event.button() == Qt.LeftButton:
                 self.mouseDrag.mouseUp(event.pos())
+        elif event.type() == QEvent.KeyPress:
+            if event.key() == Qt.Key_Space:
+                self.togglePause()
         return super(Window, self).eventFilter(source, event)
 
     def closeEvent(self, event):
@@ -257,6 +274,17 @@ class Window(QWidget):
             qApp.processEvents()
             if not self._active:
                 break
+
+    def toggleForces(self):
+        if self.forcesVisible:
+            self.forcesVisible = False
+            for constraint in self.constraints:
+                constraint.hideForces()
+        else:
+            self.forcesVisible = True
+            for constraint in self.constraints:
+                constraint.showForces()
+
 
     def viewToWorld(self, p):
         pScene = self.view.mapToScene(p)

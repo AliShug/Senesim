@@ -8,9 +8,9 @@ from senesim.config import *
 
 class TendonController(object):
     '''Simple controller tracks length limits.'''
-    def __init__(self, elastic, label = 'Unnamed', max_force=5000, max_speed=50):
+    def __init__(self, elastic, label = 'Unnamed', max_force=5000, max_speed=50, limit=100):
         self.elastic = elastic
-        self.limit = 100
+        self.limit = limit
         self.target = 0
         self.position = 0
         self.rest = elastic.restLength
@@ -86,7 +86,7 @@ class TendonController(object):
             # Reel out on extreme forces - target position doesn't matter here
             self.reelOut(delta_t)
         else:
-            # Cap movement to maximum speed, then find the
+            # Cap movement to maximum speed, then move towards the target
             step_speed = self.maxSpeed * delta_t
             if self.target < self.position - step_speed:
                 capped_target = self.position - step_speed

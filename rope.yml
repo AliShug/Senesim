@@ -19,7 +19,7 @@ bodies:
     static: true
 
   - id: left-pole
-    pos: [-3, 7]
+    pos: [-3, 5]
     width: 0.2
     height: 0.2
     color: [0.8, 0.8, 1]
@@ -30,37 +30,32 @@ bodies:
     height: 0.2
     color: [0.8, 0.8, 1]
     static: true
-  - id: ball
+  - id: ball1
     type: circle
-    pos: [0, 4.85]
+    pos: [-1, 4.85]
     radius: 0.2
   - id: ball2
     type: circle
-    pos: [-1, 4.85]
+    pos: [0, 4.85]
     radius: 0.2
 
 elastics:
 - id: rope
   bodyA: left-pole
   bodyB: right-pole
-  anchorA: [-3, 7]
+  anchorA: [-3, 5]
   anchorB: [1, 5]
   k: 10
   contacts:
-  - body: ball
-    point: [0, 5]
-  - body: ball2
+  - body: ball1
     point: [-1, 5]
+  - body: ball2
+    point: [0, 5]
 
 tendon-controllers:
 - elastic: rope
   label: Rope
 
-loads:
-- body: ball
-  anchor: [0, 4.85]
-  label: Ball Load
-  max: 400
 
 
 # leftPole = Body(self.world, self.scene)

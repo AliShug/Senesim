@@ -16,12 +16,20 @@ class Elastic(object):
         self.scene = scene
         self.contacts = []
 
-    def initElastic(self, bodyA, bodyB, anchorA, anchorB, elastic_k, restLength=None):
+    def initElastic(self,
+                    bodyA,
+                    bodyB,
+                    anchorA,
+                    anchorB,
+                    elastic_k,
+                    restLength=None,
+                    damping=1):
         self.bodyA = bodyA
         self.bodyB = bodyB
         self.localAnchorA = bodyA.GetLocalPoint(anchorA)
         self.localAnchorB = bodyB.GetLocalPoint(anchorB)
         self.k = elastic_k
+        self.damping = damping
         self.graphics_pen = QPen(elastic_pen)
         self.graphics = self.scene.addPath(QPainterPath(), pen=self.graphics_pen)
         self.forceLineA = self.scene.addLine(0,0,0,0, QPen(Qt.red, 3))
@@ -62,13 +70,13 @@ class Elastic(object):
         extension = self.getExtension()
         extension_rate = (extension - self.last_extension) / delta_t
         if extension > 0:
-            resistance = self.k * extension_rate * 0.01
             elastic_force = self.k * extension
+            damping = self.damping * extension_rate
         else:
-            resistance = 0
             elastic_force = 0
+            damping = 0
 
-        return resistance + elastic_force
+        return damping + elastic_force
 
     def updateForces(self, delta_t):
         a = self.bodyA.GetWorldPoint(self.localAnchorA)
@@ -181,3 +189,15 @@ class Elastic(object):
         self.scene.removeItem(self.forceLineB)
         del self.bodyA
         del self.bodyB
+
+    def hideForces(self):
+        self.forceLineA.hide()
+        self.forceLineB.hide()
+        for line in self.contactForceLines:
+            line.hide()
+
+    def showForces(self):
+        self.forceLineA.show()
+        self.forceLineB.show()
+        for line in self.contactForceLines:
+            line.show()

@@ -40,3 +40,9 @@ class Load(object):
         if self.line:
             self.scene.removeItem(self.line)
             self.line = None
+
+    def hideForces(self):
+        self.line.hide()
+
+    def showForces(self):
+        self.line.show()

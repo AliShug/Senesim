@@ -59,7 +59,7 @@ elastics:
   - id: upper-elastic
     bodyA: upper-anchor
     bodyB: C
-    anchorA: [0, 0.1]
+    anchorA: [0, 0.2]
     anchorB: [1.7, 0.1]
     k: 1
     # contacts:
@@ -75,13 +75,13 @@ elastics:
     #     point: [2.25, 0.35]
     contacts:
       - body: A
-        point: [0.8, 0.1]
+        point: [0.5, 0.1]
       - body: B
         point: [1.2, 0.1]
   - id: lower-elastic
     bodyA: lower-anchor
     bodyB: C
-    anchorA: [0, -0.1]
+    anchorA: [0, -0.2]
     anchorB: [1.7, -0.1]
     k: 1
     # contacts:

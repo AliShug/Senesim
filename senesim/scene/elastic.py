@@ -70,6 +70,8 @@ class Elastic(object):
         extension = self.getExtension()
         extension_rate = (extension - self.last_extension) / delta_t
         if extension > 0:
+            # Cubic elasticity is interesting
+            # elastic_force = self.k * 0.001 * extension * extension * extension
             elastic_force = self.k * extension
             damping = self.damping * extension_rate
         else:

@@ -53,15 +53,15 @@ joints:
   bodyB: A
   anchor: [0,0]
   enableLimit: true
-  lowerAngle: -0.5
-  upperAngle: 0.5
+  lowerAngle: -0.35
+  upperAngle: 0.35
 - type: revolute
   bodyA: A
   bodyB: B
   anchor: [0, 3]
   enableLimit: true
-  lowerAngle: -0.5
-  upperAngle: 0.5
+  lowerAngle: -0.4
+  upperAngle: 0.4
 
 
 elastics:

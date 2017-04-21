@@ -1,0 +1,38 @@
+bodies:
+  - id: brick
+    pos: [0, 3]
+    width: 1.0
+    height: 0.2
+    color: [0.8, 0.8, 1]
+    static: true
+
+  - id: ball-l
+    type: circle
+    pos: [-0.6, 1]
+    radius: 0.2
+  - id: ball-r
+    type: circle
+    pos: [0.6, 1]
+    radius: 0.2
+
+elastics:
+- id: rope-l
+  bodyA: brick
+  bodyB: ball-l
+  anchorA: [-0.6, 3]
+  anchorB: [-0.6, 1]
+  k: 0.5
+  damping: 0.01
+- id: rope-r
+  bodyA: brick
+  bodyB: ball-r
+  anchorA: [0.6, 3]
+  anchorB: [0.6, 1]
+  k: 0.05
+  damping: 0.005
+
+tendon-controllers:
+- elastic: rope-r
+  label: Right Rope
+- elastic: rope-l
+  label: Left Rope

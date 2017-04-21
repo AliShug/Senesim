@@ -50,8 +50,8 @@ class Elastic(object):
     def addContact(self, body, point):
         '''Adds a frictionless contact point. Points must be added in order,
         from bodyA/anchorA to bodyB/anchorB. Contacts route the elastic through
-        different bodies, and (DON'T) apply forces to those bodies according to
-        the elastic tension. If no rest length was provided at init, this
+        different bodies, and apply forces to those bodies according to
+        the elastic tension. If no rest length has been manually set, this
         recalculates the resting length at the current position.'''
         pointLocal = body.GetLocalPoint(point)
         self.contacts.append({

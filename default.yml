@@ -69,14 +69,14 @@ elastics:
   bodyA: _ground
   bodyB: A
   anchorA: [-1.5, -1]
-  anchorB: [-0.6, 1.5]
+  anchorB: [-0.4, 0.8]
   k: 400
   damping: 10
 - id: a2
   bodyA: _ground
   bodyB: A
   anchorA: [1.5, -1]
-  anchorB: [0.6, 1.5]
+  anchorB: [0.4, 0.6]
   k: 400
   damping: 10
 - id: b1
@@ -88,7 +88,9 @@ elastics:
   damping: 10
   contacts:
   - body: A
-    point: [-0.6, 0.5]
+    point: [-0.3, 0.8]
+  - body: A
+    point: [-0.3, 1.5]
 - id: b2
   bodyA: _ground
   bodyB: B
@@ -98,7 +100,9 @@ elastics:
   damping: 10
   contacts:
   - body: A
-    point: [0.6, 0.5]
+    point: [0.3, 0.6]
+  - body: A
+    point: [0.3, 1.5]
 
 
 tendon-controllers:

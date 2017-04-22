@@ -55,6 +55,11 @@ class Window(QWidget):
             static = body.get('static', False)
             color = body.get('color', default_color)
             label = body.get('label', None)
+
+            mass = body.get('mass', None)
+            inertia = body.get('inertia', None)
+            cog = body.get('cog', None)
+
             if type == 'box':
                 new_body.initBox(body['pos'], body['width'], body['height'],
                                  density=density, restitution=restitution,
@@ -67,8 +72,15 @@ class Window(QWidget):
                                     label=label, color=color)
             else:
                 raise Exception('Unknown body type {0}'.format(type))
+            # Set mass properties, if provided
+            if mass is not None:
+                new_body.body.mass = mass
+            if inertia is not None:
+                new_body.body.inertia = inertia
+            if cog is not None:
+                new_body.body.localCenter = cog
+            # Allows retrieval by ID for joints etc
             if 'id' in body:
-                # Allows retrieval by ID for joints etc
                 bodies[body['id']] = new_body
 
         for joint in parsed.get('joints', []):

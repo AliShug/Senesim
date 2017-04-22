@@ -34,10 +34,10 @@ bodies:
     type: circle
     pos: [-1, 4.85]
     radius: 0.2
-  - id: ball2
-    type: circle
-    pos: [0, 4.85]
-    radius: 0.2
+  # - id: ball2
+  #   type: circle
+  #   pos: [0, 4.85]
+  #   radius: 0.2
 
 elastics:
 - id: rope
@@ -49,8 +49,8 @@ elastics:
   contacts:
   - body: ball1
     point: [-1, 5]
-  - body: ball2
-    point: [0, 5]
+  # - body: ball2
+  #   point: [0, 5]
 
 tendon-controllers:
 - elastic: rope
